@@ -2,7 +2,7 @@ import { CircleDollarSign, Zap, HandCoins, Cpu } from "lucide-react";
 import MiningDevices from "./MiningDevices";
 import InfoCardContainer from "../card/InfoCardContainer";
 
-function MiningDashBoard() {
+export default function MiningInfoCards() {
   const cardInfoList = [
     {
       icon: <CircleDollarSign />,
@@ -38,16 +38,3 @@ function MiningDashBoard() {
 
   return <InfoCardContainer cardInfoList={cardInfoList} />;
 }
-
-const MiningPage = () => {
-  return (
-    <div id="mining-page" className="flex flex-col grow size-full text-black">
-      <div className="size-full p-10 overflow-y-auto">
-        <MiningDashBoard />
-        <MiningDevices />
-      </div>
-    </div>
-  );
-};
-
-export default MiningPage;

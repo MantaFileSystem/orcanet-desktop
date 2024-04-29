@@ -8,7 +8,7 @@ import SettingsPage from "./settings/SettingsPage";
 import AppearancePage from "./settings/appearance/AppearancePage";
 import NotificationsPage from "./settings/notifications/NotificationPage";
 import TransferPage from "./settings/transfer/TransferPage";
-import MiningPage from "./mining/Mining";
+import MiningPage from "./mining/MiningPage";
 import { ThemeProvider } from "./shadcn/components/ui/ThemeProvider";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { Toaster } from "./shadcn/components/ui/toaster";

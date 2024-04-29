@@ -17,54 +17,7 @@ import {
 } from "../shadcn/components/ui/table";
 
 import { Switch } from "../shadcn/components/ui/switch";
-
-export let DevicesData = [
-  {
-    id: "59a53ee428a643e940546c5ccfc5663e",
-    model: "AMD Ryzen Threadripper PRO 7995WX",
-    hashpower: "37.56 MH/s",
-    amount: 0.5523342,
-    status: "Mining",
-    power: "50W",
-    switch: true,
-  },
-  {
-    id: "f0623b42ea2d521b945a80b014f5694b",
-    model: "GeForce RTX 3090",
-    hashpower: "37.56 MH/s",
-    amount: 0.2323,
-    status: "Mining",
-    power: "100W",
-    switch: true,
-  },
-  {
-    id: "061b96f36e163ef82de2feefe7d7aaba",
-    model: "GeForce RTX 4090",
-    hashpower: "37.56 MH/s",
-    amount: 0.8311008,
-    status: "Mining",
-    power: "200W",
-    switch: true,
-  },
-  {
-    id: "b8ae1f8845ee9cbe64174ae089973b56",
-    model: "NVIDIA RTX 6000 Ada Generation",
-    hashpower: "37.56 MH/s",
-    amount: 0.66345,
-    status: "Mining",
-    power: "300W",
-    switch: true,
-  },
-  {
-    id: "bcaeff20734041e27098eb5138b3003a",
-    model: "GeForce RTX 3090",
-    hashpower: "",
-    amount: 0,
-    status: "disabled",
-    power: "",
-    switch: false,
-  },
-];
+import { devicesData } from "./deviceData";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -158,8 +111,8 @@ export const columns = [
         status === "disabled"
           ? "text-gray-500"
           : status === "Mining"
-          ? "text-green-500"
-          : "text-red-500";
+            ? "text-green-500"
+            : "text-red-500";
       return (
         <div>
           <div className={`font-medium ${color}`}>{status}</div>
@@ -204,7 +157,7 @@ export const columns = [
 export default function MiningDevices() {
   return (
     <>
-      <DataTable columns={columns} data={DevicesData} />
+      <DataTable columns={columns} data={devicesData} />
     </>
   );
 }
