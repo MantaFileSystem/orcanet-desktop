@@ -30,6 +30,8 @@ import { Button } from "../shadcn/components/ui/button";
 import { ChevronsLeft, ChevronsRight, Grip } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { WalletData } from "./WalletData";
+import { useState } from "react";
+import { AiFillFile } from "react-icons/ai";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -158,6 +160,7 @@ export const columns = [
       );
     },
   },
+
   {
     accessorKey: "amount",
     header: () => <div className="text-right">Amount</div>,
@@ -176,26 +179,79 @@ export const columns = [
     enableHiding: false,
     cell: ({ row }: { row: any }) => {
       const payment = row.original;
+      const [IsTransactionDetailModalOpen, setIsTransactionDetailModalOpen] =
+        useState(false);
+      const dateObj = row.original.date;
+      const formattedDate = `${dateObj.getMonth() + 1}/${dateObj.getDate() + 1}/${dateObj.getFullYear()}`;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8  p-0 flex">
-              <Grip className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy Transaction ID
-            </DropdownMenuItem>
-            {/* <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem> */}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8  p-0 flex">
+                <Grip className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => navigator.clipboard.writeText(payment.id)}
+              >
+                Copy Transaction ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsTransactionDetailModalOpen(true);
+                }}
+              >
+                View Transaction Details
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {IsTransactionDetailModalOpen && (
+            <div className="fixed inset-0 bg-white bg-opacity-75 flex justify-center items-center z-50">
+              <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full mx-4">
+                <h2 className="text-2xl font-bold text-black mb-6 text-center">
+                  Transaction Details
+                </h2>
+                <div className="mb-6">
+                  <p className="text-lg font-semibold text-black">From:</p>
+                  <p className="text-black">{row.original.From}</p>
+                </div>
+                <div className="mb-6">
+                  <p className="text-lg font-semibold text-black">To:</p>
+                  <p className="text-black">{row.original.To}</p>
+                </div>
+                <div className="mb-6">
+                  <p className="text-lg font-semibold text-black">
+                    Transaction ID:
+                  </p>
+                  <p className="text-black">{row.original.id}</p>
+                </div>
+                <div className="mb-6">
+                  <p className="text-lg font-semibold text-black">Amount:</p>
+                  <p className="text-black">{row.original.amount} ORC</p>
+                </div>
+                <div className="mb-6">
+                  <p className="text-lg font-semibold text-black">Date:</p>
+                  <p className="text-black">{formattedDate}</p>
+                </div>
+                <div className="flex items-center justify-center space-x-4 bg-gray-200 p-4 rounded-b-2xl">
+                  <button
+                    className="flex-1 justify-center py-3 px-6 border border-transparent shadow text-lg font-medium rounded-md text-black bg-red-300 hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out"
+                    onClick={() => {
+                      setIsTransactionDetailModalOpen(false);
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       );
     },
   },
