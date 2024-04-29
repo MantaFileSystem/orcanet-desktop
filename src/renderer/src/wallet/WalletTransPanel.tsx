@@ -14,7 +14,6 @@ import {
   AlertDialogTrigger,
 } from "../shadcn/components/ui/alert-dialog";
 
-
 export interface displayControllerProps {
   display: string;
   setDisplay: React.Dispatch<React.SetStateAction<string>>;

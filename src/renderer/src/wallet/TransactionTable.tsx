@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "../shadcn/components/ui/dropdown-menu";
 import { Button } from "../shadcn/components/ui/button";
+import { Toaster } from "../shadcn/components/ui/toaster";
 
 import { ChevronsLeft, ChevronsRight, Grip } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
@@ -69,7 +70,7 @@ export function DataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 );
@@ -152,15 +153,24 @@ export const columns = [
     cell: ({ row }: { row: any }) => {
       return (
         <div>
-          <div className="font-md text-black">{row.getValue("id")}</div>
+          <div
+            className="font-md text-black hover:cursor-pointer hover:text-indigo-500"
+            onClick={() => navigator.clipboard.writeText(row.getValue("id"))}
+          >
+            {row.getValue("id")}
+          </div>
           {row.original.reason && (
-            <div className="text-gray-500">Reason: {row.original.reason}</div>
+            <div
+              className="text-gray-500 hover:cursor-pointer hover:text-indigo-500"
+              onClick={() => navigator.clipboard.writeText(row.original.reason)}
+            >
+              Reason: {row.original.reason}
+            </div>
           )}
         </div>
       );
     },
   },
-
   {
     accessorKey: "amount",
     header: () => <div className="text-right">Amount</div>,
@@ -186,9 +196,26 @@ export const columns = [
 
       return (
         <div>
-          <DropdownMenu>
+          <Button
+            variant="ghost"
+            className="flex h-8 w-8 px-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsTransactionDetailModalOpen(true);
+            }}
+          >
+            <Grip className="h-4 w-4" />
+          </Button>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8  p-0 flex">
+              <Button
+                variant="ghost"
+                className="flex h-8 px-1 "
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsTransactionDetailModalOpen(true);
+                }}
+              >
                 <Grip className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -209,53 +236,75 @@ export const columns = [
                 View Transaction Details
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
-          {IsTransactionDetailModalOpen && (
-            <div className="fixed inset-0 bg-white bg-opacity-75 flex justify-center items-center z-50">
-              <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-lg w-full mx-4">
-                <h2 className="text-2xl font-bold text-black mb-6 text-center">
-                  Transaction Details
-                </h2>
-                <div className="mb-6">
-                  <p className="text-lg font-semibold text-black">From:</p>
-                  <p className="text-black">{row.original.From}</p>
-                </div>
-                <div className="mb-6">
-                  <p className="text-lg font-semibold text-black">To:</p>
-                  <p className="text-black">{row.original.To}</p>
-                </div>
-                <div className="mb-6">
-                  <p className="text-lg font-semibold text-black">
-                    Transaction ID:
-                  </p>
-                  <p className="text-black">{row.original.id}</p>
-                </div>
-                <div className="mb-6">
-                  <p className="text-lg font-semibold text-black">Amount:</p>
-                  <p className="text-black">{row.original.amount} ORC</p>
-                </div>
-                <div className="mb-6">
-                  <p className="text-lg font-semibold text-black">Date:</p>
-                  <p className="text-black">{formattedDate}</p>
-                </div>
-                <div className="flex items-center justify-center space-x-4 bg-gray-200 p-4 rounded-b-2xl">
-                  <button
-                    className="flex-1 justify-center py-3 px-6 border border-transparent shadow text-lg font-medium rounded-md text-black bg-red-300 hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out"
-                    onClick={() => {
-                      setIsTransactionDetailModalOpen(false);
-                    }}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          </DropdownMenu> */}
+          {IsTransactionDetailModalOpen &&
+            transactionDetailPopup(
+              setIsTransactionDetailModalOpen,
+              row,
+              formattedDate,
+            )}
         </div>
       );
     },
   },
 ];
+
+function detailsBlock(text: string, value: string, copy: boolean) {
+  return (
+    <div className="mb-3">
+      <p className="text-lg font-semibold text-black">{text}</p>
+      {copy && (
+        <p
+          className="text-black hover:cursor-pointer hover:text-indigo-500"
+          onClick={() => {
+            navigator.clipboard.writeText(value);
+          }}
+        >
+          {value}
+        </p>
+      )}
+      {!copy && <p className="text-black ">{value}</p>}
+    </div>
+  );
+}
+
+function transactionDetailPopup(
+  setIsTransactionDetailModalOpen: any,
+  row: any,
+  formattedDate: any,
+) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-75">
+      <div className="mx-4 w-full max-w-lg rounded-2xl bg-white p-8 shadow-2xl">
+        <h2 className="mb-6 text-center text-2xl font-bold text-black">
+          Transaction Details
+        </h2>
+
+        {detailsBlock("From:", row.original.From, true)}
+        {detailsBlock("To:", row.original.To, true)}
+        {detailsBlock("Transaction ID:", row.original.id, true)}
+        {detailsBlock("Reason:", row.original.reason, false)}
+        {detailsBlock("Status:", row.original.status, false)}
+        {detailsBlock("Amount:", row.original.amount, false)}
+        {detailsBlock("Date:", formattedDate, false)}
+
+        <div className="flex items-center justify-center space-x-4 rounded-b-2xl bg-gray-200 p-3">
+          <button
+            className="flex-1 justify-center rounded-md border border-transparent 
+        bg-red-300 px-6 py-3 text-lg font-medium text-black shadow transition 
+        duration-150 ease-in-out hover:bg-red-400 focus:outline-none focus:ring-2 
+        focus:ring-red-500 focus:ring-offset-2"
+            onClick={() => {
+              setIsTransactionDetailModalOpen(false);
+            }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function TransactionTable({ path }: { path: string }) {
   const page = path;
@@ -263,11 +312,11 @@ export default function TransactionTable({ path }: { path: string }) {
 
   return (
     <div className={`rounded-md p-5 ${page !== "transactions" && "border"}`}>
-      <div className="flex justify-between font-bold mb-2">
-        <h3 className="text-stone-900 text-xl">Transactions</h3>
+      <div className="mb-2 flex justify-between font-bold">
+        <h3 className="text-xl text-stone-900">Transactions</h3>
         {page !== "transactions" && (
           <Link to="/wallet/transactions">
-            <div className="text-indigo-500 flex gap-2 text-sm items-center hover:cursor-pointer">
+            <div className="flex items-center gap-2 text-sm text-indigo-500 hover:cursor-pointer">
               <h3>View All</h3>
               <ChevronsRight />
             </div>
@@ -275,7 +324,7 @@ export default function TransactionTable({ path }: { path: string }) {
         )}
         {page === "transactions" && (
           <Link to="/wallet">
-            <div className="text-indigo-500 flex gap-2 text-sm items-center hover:cursor-pointer">
+            <div className="flex items-center gap-2 text-sm text-indigo-500 hover:cursor-pointer">
               <h3>Return</h3>
               <ChevronsLeft />
             </div>

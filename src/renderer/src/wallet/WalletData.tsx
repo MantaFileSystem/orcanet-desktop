@@ -1,4 +1,14 @@
-export const WalletData = [
+export interface WalletData {
+  id: string;
+  amount: number;
+  status: string;
+  reason: string;
+  date: Date;
+  From: string;
+  To: string;
+}
+
+export const WalletData: WalletData[] = [
   {
     id: "59a53ee428a643e940546c5ccfc5663e",
     amount: -0.5523342,
