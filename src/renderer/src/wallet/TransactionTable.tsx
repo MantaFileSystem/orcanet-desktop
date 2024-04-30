@@ -30,7 +30,7 @@ import { Toaster } from "../shadcn/components/ui/toaster";
 
 import { ChevronsLeft, ChevronsRight, Grip } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { WalletData } from "./WalletData";
+import { Transactions } from "./WalletData";
 import { useState } from "react";
 import { AiFillFile } from "react-icons/ai";
 
@@ -308,7 +308,7 @@ function transactionDetailPopup(
 
 export default function TransactionTable({ path }: { path: string }) {
   const page = path;
-  const top5Data = WalletData.slice(0, 5);
+  const top5Data = Transactions.slice(0, 5);
 
   return (
     <div className={`rounded-md p-5 ${page !== "transactions" && "border"}`}>
@@ -333,7 +333,7 @@ export default function TransactionTable({ path }: { path: string }) {
       </div>
       <DataTable
         columns={columns}
-        data={page !== "transactions" ? top5Data : WalletData}
+        data={page !== "transactions" ? top5Data : Transactions}
         path={path}
       />
     </div>

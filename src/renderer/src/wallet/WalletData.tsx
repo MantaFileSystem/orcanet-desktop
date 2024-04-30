@@ -1,14 +1,6 @@
-export interface WalletData {
-  id: string;
-  amount: number;
-  status: string;
-  reason: string;
-  date: Date;
-  From: string;
-  To: string;
-}
+import { ITransaction } from "@shared/models";
 
-export const WalletData: WalletData[] = [
+export const Transactions: ITransaction[] = [
   {
     id: "59a53ee428a643e940546c5ccfc5663e",
     amount: -0.5523342,

@@ -1,3 +1,5 @@
+
+
 export type PeerInfo = {
     Location:    string
 	Latency :    string
@@ -15,3 +17,13 @@ export type ActivityInfo = {
 	Peers        :number  
 	lastEditTime :number
 }
+
+export interface ITransaction {
+	id: string;
+	amount: number;
+	status: string;
+	reason: string;
+	date: Date;
+	From: string;
+	To: string;
+  }

@@ -1,5 +1,6 @@
 import { GetActivity, GetActivities , GetPeers} from '@shared/types'
 import { contextBridge, ipcRenderer } from 'electron'
+import { get } from 'lodash'
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
@@ -15,6 +16,7 @@ try{
     getPeers : (...args: Parameters<GetPeers>) =>  ipcRenderer.invoke('getPeers', ...args),
     // deleteActivity : (...args: Parameters<DeleteActivity>) =>  ipcRenderer.invoke('deleteActivity', ...args),
     //TODO
+    getWalletData : () => ipcRenderer.invoke('getWalletData'),
   })
 }catch(error){
   console.log(error)

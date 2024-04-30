@@ -1,6 +1,8 @@
-import { ActivityInfo, PeerInfo } from '@shared/models'
-import { atom } from 'jotai'
-import { unwrap } from 'jotai/utils'
+import { ActivityInfo, PeerInfo } from "@shared/models";
+import { atom } from "jotai";
+import { unwrap } from "jotai/utils";
+
+import { TransactionsAtom } from "./wallet";
 
 // const loadActivities = async () => {
 //   const activities = await window.context.getActivities();
@@ -12,15 +14,16 @@ import { unwrap } from 'jotai/utils'
 
 // export const ActivitiesAtom = unwrap(ActivitiesAtomAsync, (prev) => prev)
 
-
 const loadPeers = async () => {
   const peers = await window.context.getPeers();
-  return peers.sort((a,b)=> b.Location.localeCompare(a.Location));
-}
+  return peers.sort((a, b) => b.Location.localeCompare(a.Location));
+};
 
-const PeersAtomAsync = atom<PeerInfo[] | Promise<PeerInfo[]>>(loadPeers)
+const PeersAtomAsync = atom<PeerInfo[] | Promise<PeerInfo[]>>(loadPeers);
 
-export const PeersAtom = unwrap(PeersAtomAsync, (prev)=>prev)
+export const PeersAtom = unwrap(PeersAtomAsync, (prev) => prev);
+
+export { TransactionsAtom };
 
 // export const selectedActivityIndexAtom = atom<number | null>(null)
 
