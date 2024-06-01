@@ -1,6 +1,6 @@
-import { ActivityInfo, PeerInfo } from '@shared/models'
-import { atom } from 'jotai'
-import { unwrap } from 'jotai/utils'
+import { ActivityInfo, PeerInfo } from "@shared/models";
+import { atom } from "jotai";
+import { unwrap } from "jotai/utils";
 
 // const loadActivities = async () => {
 //   const activities = await window.context.getActivities();
@@ -12,15 +12,18 @@ import { unwrap } from 'jotai/utils'
 
 // export const ActivitiesAtom = unwrap(ActivitiesAtomAsync, (prev) => prev)
 
-
-const loadPeers = async () => {
+export const getPeers = async () => {
   const peers = await window.context.getPeers();
-  return peers.sort((a,b)=> b.Location.localeCompare(a.Location));
-}
+  return peers.sort((a, b) => b.Location.localeCompare(a.Location));
+};
 
-const PeersAtomAsync = atom<PeerInfo[] | Promise<PeerInfo[]>>(loadPeers)
+const PeersAtomAsync = atom<PeerInfo[] | Promise<PeerInfo[]>>(async () => {
+  const initialPeers = await getPeers();
+  return initialPeers;
+});
 
-export const PeersAtom = unwrap(PeersAtomAsync, (prev)=>prev)
+export const PeersAtom = unwrap(PeersAtomAsync, (prev) => prev);
+
 
 // export const selectedActivityIndexAtom = atom<number | null>(null)
 
@@ -114,3 +117,12 @@ export const PeersAtom = unwrap(PeersAtomAsync, (prev)=>prev)
 //   // de select any note
 //   set(selectedNoteIndexAtom, null)
 // })
+
+/* Market Page */
+import {
+  fetchFilePeersAtom,
+  fetchHistoryAtom,
+  fetchJobListAtom,
+} from "./market";
+
+export { fetchFilePeersAtom, fetchHistoryAtom, fetchJobListAtom };

@@ -29,6 +29,8 @@ const HomePage = () => {
     name: string;
     size: string;
     hash: string;
+    date: string;
+    type: string,
     status: string;
     showDropdown?: boolean;
     peers?: number;
@@ -43,32 +45,34 @@ const HomePage = () => {
     PUBLISHED = "Published",
   }
 
-  function UploadFile(base64String: string, name: string, size: string, filePath:string) : Activity{
-    const newActivity = {
-      id: 1,
-      stringId: base64String,
-      name, 
-      size, 
-      hash: filePath, 
-      status: Status.UPLOADED
-    }
+  // function UploadFile(base64String: string, name: string, size: string, filePath:string) : Activity{
+  //   const newActivity = {
+  //     id: 1,
+  //     stringId: base64String,
+  //     name, 
+  //     size, 
+  //     hash: filePath, 
+  //     status: Status.UPLOADED
+  //   }
 
-    console.log("newActivity", newActivity.id)
-    setActivities(p => [...p, newActivity])
+  //   console.log("newActivity", newActivity.id)
+  //   setActivities(p => [...p, newActivity])
 
-    return newActivity; 
-  }
+  //   return newActivity; 
+  // }
   
   const [activities, setActivities] = useState<Activity[]>([]);
 
   const [updateTrigger, setUpdateTrigger] = useState(false);
 
-  const fetchActivities = async () => {
+  const fetchActivities = () => {
     try {
-      const result = await GetActivities();
-      setActivities(result);
+      const storedActivities = localStorage.getItem('activities');
+      const activities = storedActivities ? JSON.parse(storedActivities) : [];
+      console.log("activities", activities)
+      setActivities(activities);
     } catch (error) {
-      console.error("Failed to fetch activities:", error);
+      console.error("Failed to fetch activities from local storage:", error);
     }
   };
 
@@ -81,7 +85,24 @@ const HomePage = () => {
   );
   const totalFiles = activities.length;
 
-  const networkStatus = "Healthy";
+  const getOnLineStatus = () =>
+    typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean'
+        ? navigator.onLine
+        : true;
+
+  const [status, setStatus] = React.useState(getOnLineStatus());
+  const setOnline = () => setStatus(true);
+  const setOffline = () => setStatus(false);
+
+  useEffect(() => {
+    window.addEventListener('online', setOnline);
+    window.addEventListener('offline', setOffline);
+
+    return () => {
+        window.removeEventListener('online', setOnline);
+        window.removeEventListener('offline', setOffline);
+    };
+  }, []);
 
   const toggleDropdown = (id: number) => {
     if (id === -1) {
@@ -133,13 +154,43 @@ const HomePage = () => {
       .map((activity) => activity);
     
     setActivities(selectedActivities);
+    localStorage.setItem('activities', JSON.stringify(selectedActivities));
   };
   const downLoadSelected = async () => {
     const selectedActivities = activities
       .filter((activity) => activity.isSelected)
       .map((activity) => activity);
 
-    console.log("selectedActivities", selectedActivities)
+    // console.log("selectedActivities", selectedActivities)
+    console.log("cvs.png")
+  }
+
+  const downloadFile = async (filePath: string, fileName: string) => {
+    // const selectedActivities = activities
+    // .filter((activity) => activity.isSelected)
+    // .map((activity) => activity);
+
+    // console.log("selectedActivities", selectedActivities)
+    // let filePath = selectedActivities[0].name;
+    // let fileName = selectedActivities[0].name;
+
+    try {
+      const response = await fetch(filePath);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+  
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+  
+      document.body.appendChild(link);
+      link.click();
+  
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+    }
   }
 
   const updateSelection = (id: number, isSelected: boolean) => {
@@ -160,18 +211,49 @@ const HomePage = () => {
   };
 
   const addFileToActivities = async (file: File) => {
-    const hash = await generateFileHash(file);
-
-    const newActivity: Activity = {
-      id: activities.length + 1 + hash.length + hash.charCodeAt(0) + hash.charCodeAt(1) + hash.charCodeAt(hash.length-1),
-      name: file.name,
-      size: formatFileSize(file.size),
-      hash: hash,
-      status: Status.UPLOADED,
-      showDropdown: false,
+    const filePath = file.path; // You need to replace this with the actual file path if available
+    console.log(file.path);
+  
+    const payload = {
+      FilePath: filePath,
     };
-
-    setActivities((currentActivities) => [...currentActivities, newActivity]);
+  
+    try {
+      const response = await fetch('http://localhost:5173/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      let responseText = await response.text();
+      console.log("responseText", responseText)
+      const hashStart = responseText.indexOf('"hash":') + 8; // 8 characters to move past '"hash": ' including the space and the opening quote
+      const hashEnd = responseText.indexOf('"', hashStart); // Find the closing quote of the hash value
+      const hash = responseText.substring(hashStart, hashEnd);
+  
+      console.log(hash);
+      const newActivity: Activity = {
+        id: activities.length + 1,
+        name: file.name,
+        size: formatFileSize(file.size),
+        hash: hash,
+        status: Status.UPLOADED,
+        date: new Date().toLocaleDateString(),
+        type: file.type,
+        showDropdown: false,
+      };
+      console.log("newActivity", newActivity)
+      setActivities((currentActivities) => {
+        const updatedActivities = [...currentActivities, newActivity];
+        localStorage.setItem('activities', JSON.stringify(updatedActivities));
+        return updatedActivities;
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('There was an error uploading the file. Please try again later.');
+    }
   };
 
   const removeActivity = (id: number) => {
@@ -185,7 +267,7 @@ const HomePage = () => {
     event.preventDefault();
     const items = event.dataTransfer.items;
     const files: File[] = [];
-
+  
     for (let i = 0; i < items.length; i++) {
       const item = items[i].webkitGetAsEntry();
       if (item) {
@@ -193,25 +275,9 @@ const HomePage = () => {
         files.push(...fileEntries);
       }
     }
-
-    const newActivitiesPromises = files.map(async (file, index) => {
-      const hash = await generateFileHash(file);
-      return {
-        id: activities.length + index + 1,
-        name: file.name,
-        size: formatFileSize(file.size),
-        hash: hash,
-        status: "Uploaded",
-        showDropdown: false,
-      };
-    });
-
-    const newActivities = await Promise.all(newActivitiesPromises);
-
-    setActivities((currentActivities) => [
-      ...currentActivities,
-      ...newActivities,
-    ]);
+  
+    const newActivitiesPromises = files.map(file => addFileToActivities(file));
+    await Promise.all(newActivitiesPromises);
   };
 
   const getFilesRecursively = async (entry: any): Promise<File[]> => {
@@ -261,7 +327,7 @@ const HomePage = () => {
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      className={`relative w-full`}
+      className={`relative w-full h-screen overflow-auto`}
     >
       <div className="dashboard-overview bg-white p-6 rounded-xl shadow-lg mb-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">
@@ -290,10 +356,10 @@ const HomePage = () => {
             </span>
             <span
               className={`block text-2xl font-bold ${
-                networkStatus === "Healthy" ? "text-green-600" : "text-red-600"
+                status ? "text-green-600" : "text-red-600"
               }`}
             >
-              {networkStatus}
+              {status ? "Healthy" : "No Internet"}
             </span>
           </div>
         </div>
@@ -305,6 +371,7 @@ const HomePage = () => {
           toggleEdit,
           updateSelection,
           updateAllSelections,
+          downloadFile,
           activities
         )}
         data={activities}
@@ -344,7 +411,8 @@ const HomePage = () => {
                 Share link
               </button>
               <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 text-sm rounded transition ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                onClick={downLoadSelected}
+                // onClick={downLoadSelected}
+                // onClick={() => downloadFile()}
               >
                 Download
               </button>

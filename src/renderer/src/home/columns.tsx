@@ -8,6 +8,8 @@ export type Activity = {
   name: string;
   size: string;
   hash: string;
+  date: string;
+  type: string,
   status: string;
   showDropdown?: boolean;
   peers?: number;
@@ -21,31 +23,35 @@ export const getColumns = (
   toggleEdit: (id: number) => void,
   updateSelection: (id: number, isSelected: boolean) => void,
   updateAllSelections: (isSelected: boolean) => void,
+  downloadFile: (filePath: string, fileName: string) => void,
   activities: Activity[]
 ): ColumnDef<Activity>[] => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFileDetailModalOpen, setIsFileDetailModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      activities.forEach((activity) => {
-        if (activity.showDropdown) {
-          const dropdownElement = document.getElementById(
-            `dropdown-${activity.id}`
-          );
-          if (
-            dropdownElement &&
-            !dropdownElement.contains(event.target as Node)
-          ) {
-            toggleDropdown(activity.id);
-          }
+      const dropdowns = document.querySelectorAll('.dropdown-container');
+      dropdowns.forEach((dropdown) => {
+        const button = dropdown.querySelector('button');
+        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+
+        if (
+          dropdownMenu &&
+          !dropdownMenu.contains(event.target as Node) &&
+          !button?.contains(event.target as Node)
+        ) {
+          const activityId = Number(dropdown.getAttribute('data-activity-id'));
+          toggleDropdown(activityId);
         }
       });
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [activities]);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const selectColumn: ColumnDef<Activity> = {
     id: "select",
@@ -115,7 +121,7 @@ export const getColumns = (
           <div>
             {truncatedName}
             <div style={{ color: "black", fontSize: "smaller" }}>
-              {row.original.hash}
+              {row.original.hash.slice(0, -24) + '...'}
             </div>
           </div>
         );
@@ -140,21 +146,9 @@ export const getColumns = (
       id: "dropdown",
       header: () => null,
       cell: ({ row }) => (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative dropdown-container" data-activity-id={row.original.id}>
           <button
-            onClick={(e) => {
-                      // Calculate and update dropdown position
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-                      const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
-                      const dropdownElement = document.getElementById(`dropdown-${row.original.id}`);
-                      if (dropdownElement) {
-                        dropdownElement.style.position = 'fixed';
-                        // Adjust position with scroll offsets
-                        dropdownElement.style.top = `${rect.bottom + scrollTop}px`;
-                        dropdownElement.style.left = `${rect.left + scrollLeft}px`;
-                      }
-              // toggle the current row's dropdown
+            onClick={() => {
               toggleDropdown(row.original.id);
             }}
           >
@@ -175,9 +169,10 @@ export const getColumns = (
           </button>
           {row.original.showDropdown && (
             <div
-              className="fixed right-0 mt-2 py-2 w-48 bg-white rounded-md shadow-xl z-20 border border-gray-300"
+              className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-md shadow-xl z-20 border border-gray-300 dropdown-menu"
               id={`dropdown-${row.original.id}`}
-              onClick={(e) => e.stopPropagation()}
+              // onClick={(e) => e.stopPropagation()}
+              // onClick={() => downloadFile(row.original.name)}
             >
               <a
                 href="#"
@@ -324,6 +319,18 @@ export const getColumns = (
                           File Size:
                         </p>
                         <p className="text-black">{row.original.size}</p>
+                      </div>
+                      <div className="mb-6">
+                        <p className="text-lg font-semibold text-black">
+                          File Type:
+                        </p>
+                        <p className="text-black">{row.original.type}</p>
+                      </div>
+                      <div className="mb-6">
+                        <p className="text-lg font-semibold text-black">
+                          Date Created
+                        </p>
+                        <p className="text-black">{row.original.date}</p>
                       </div>
                       <div className="flex items-center justify-center space-x-4 bg-gray-200 p-4 rounded-b-2xl">
                         <button
